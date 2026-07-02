@@ -166,7 +166,7 @@ TPL = r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 .fbtn{font-family:var(--mono);font-size:10.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--mut);cursor:pointer;display:flex;align-items:center;gap:6px}
 .fbtn i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .fbtn .ct{color:var(--dim)}.fbtn.on{background:var(--panel2);color:var(--ink);border-color:var(--sig)}
-#map{height:430px;background:#0f141c}#sat{height:170px;background:#0f141c;border-bottom:1px solid var(--line)}
+#map{height:500px;background:#0f141c}#sat{height:500px;background:#0f141c;border-bottom:1px solid var(--line)}
 .leaflet-container{background:#0f141c;font-family:var(--sans)}
 .leaflet-control-layers,.leaflet-bar{border:1px solid var(--line)!important;background:var(--panel)!important;color:var(--ink)!important}
 .legend{display:flex;flex-wrap:wrap;gap:12px;padding:9px 13px;border-top:1px solid var(--line);font-size:11.5px;color:var(--mut)}
@@ -314,7 +314,7 @@ st.markdown("""<style>
 .a2s-hero{padding:2px 2px 14px;border-bottom:1px solid #2A323F;margin-bottom:16px}
 .a2s-hero .ttl{font-size:27px;font-weight:800;letter-spacing:-.01em;color:#E7ECF3;display:flex;align-items:center;gap:12px;line-height:1.1;flex-wrap:wrap}
 .a2s-hero .tag{font-family:ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0E1117;background:#3DD6C4;padding:4px 9px;border-radius:6px}
-.a2s-hero .sub{color:#B4BECE;font-size:13.5px;margin-top:8px;max-width:840px;line-height:1.5}
+.a2s-hero .sub{color:#B4BECE;font-size:13.5px;margin-top:8px;max-width:none;line-height:1.5}
 .a2s-kpis{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 8px}
 .a2s-kpi{flex:1;min-width:150px;background:#171C25;border:1px solid #2A323F;border-radius:13px;padding:13px 16px}
 .a2s-kpi .k{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#B4BECE}
@@ -400,4 +400,4 @@ if valid_conds:
         unsafe_allow_html=True)
 
 html = TPL.replace("__DATA__", json.dumps(DATA, ensure_ascii=False))
-components.html(html, height=1040, scrolling=False)
+components.html(html, height=1200, scrolling=False)
