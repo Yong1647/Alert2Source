@@ -184,6 +184,7 @@ TPL = r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 .badge{font-family:var(--mono);font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;text-transform:uppercase;color:#0E1117}
 .sh h2{margin:7px 0 0;font-size:13px;font-family:var(--mono);font-weight:600;word-break:break-all}
 .sh .meta{margin-top:4px;font-size:12px;color:var(--mut);font-family:var(--mono)}.sh .obs b{color:var(--ink)}
+#pred{border-top:1px solid var(--line)}#pred .empty{padding:26px 20px}
 .dual{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}@media(max-width:520px){.dual{grid-template-columns:1fr}}
 .col{background:var(--panel);padding:11px 13px}.col h3{margin:0 0 9px;font-size:11px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
 .col h3 .sub{display:block;color:var(--dim);font-size:9.5px;margin-top:2px;text-transform:none}
@@ -202,13 +203,14 @@ TPL = r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 .shaphint{padding:6px 14px 10px;font-size:10px;color:var(--dim);border-bottom:1px solid var(--line)}
 .tab{font-family:var(--mono);font-size:10.5px;padding:5px 9px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--mut);cursor:pointer}
 .tab.on{background:var(--sig);color:#0E1117;border-color:var(--sig);font-weight:600}
-.reptext{font-size:12px;line-height:1.6;color:#C7CFDB;max-height:210px;overflow:auto;white-space:pre-wrap;background:#10151d;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.reptext{font-size:12.5px;line-height:1.62;color:#C7CFDB;min-height:300px;max-height:340px;overflow:auto;white-space:pre-wrap;background:#10151d;border:1px solid var(--line);border-radius:9px;padding:12px 14px}
 .reptext strong{color:var(--ink)}::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#2A323F;border-radius:5px}
 </style></head><body>
 <div class="grid">
  <div class="card"><div class="hd"><span class="t">Europe · root-cause map</span><span class="t" id="cnt"></span></div>
   <div class="filterbar" id="filterbar"></div>
   <div id="map"></div><div class="legend" id="legend"></div>
+  <div id="pred"><div class="empty">Select a station on the map →</div></div>
   <div class="formulas">
    <div class="fttl">Evaluation metric definitions <span class="fsub">N = NO2·PM10 cases, dominant = CAMS top emitter, present = set of CAMS present emitters, rank = LLM ranked_sources</span></div>
    <div class="frow"><span class="fk">AC@k</span><span class="fx">= (1/N) &middot; &Sigma;<sub>i</sub> &#120128;[ dominant<sub>i</sub> &isin; rank<sub>i</sub>[:k] ]</span><span class="fd">Fraction where the top emitter is within the top k (k=1,3)</span></div>
@@ -292,9 +294,9 @@ function renderDetail(){const c=cur.c;
  }else{camsHtml=`<div class="nocams">No CAMS emission label. O3 is a secondary photochemical pollutant, so its <b style="color:var(--mut)">local emission source is undefined</b>.</div>`;
   verdict=`<div class="verdict"><span class="dot" style="background:var(--o3)"></span><span>Negative control (${curCond} predicted #1 <b style="color:${catC(ranked[0]||'')}">${ranked[0]?CATLBL[ranked[0]]:'-'}</b>)</span></div>`;}
  const condTabs=(DATA.conds||[]).map(k=>`<button class="ctab ${k===curCond?'on':''}" data-c="${k}">${k}</button>`).join('');
+ document.getElementById('pred').innerHTML=`<div class="condsel">${condTabs}</div>
+  <div class="dual"><div class="col"><h3 style="color:var(--sig)">Our Prediction<span class="sub">${curCond} · LLM ranking</span></h3>${rankBars(ranked,c.cams?c.cams.dom:null)}</div><div class="col"><h3 style="color:#E8A24A">Label root (CAMS Data)<span class="sub">emission share</span></h3>${camsHtml}</div></div>${verdict}`;
  document.getElementById('detailbody').innerHTML=`<div class="sh"><div class="row1"><span class="badge" style="background:${polC(c.pollutant)}">${POLLBL[c.pollutant]}</span><span class="meta">${curCond} predicted root: ${CATLBL[top1]||'-'} · ${c.station||'—'}</span></div><h2>${c.case_key}</h2><div class="meta obs">${c.lat!=null?c.lat.toFixed(3)+'°N, '+c.lon.toFixed(3)+'°E':'no coordinates'}${c.observed!=null?' · observed <b>'+c.observed.toFixed(1)+' µg/m³</b>':''}</div></div>
-  <div class="condsel">${condTabs}</div>
-  <div class="dual"><div class="col"><h3 style="color:var(--sig)">Our Prediction<span class="sub">${curCond} · LLM ranking</span></h3>${rankBars(ranked,c.cams?c.cams.dom:null)}</div><div class="col"><h3 style="color:#E8A24A">Label root (CAMS Data)<span class="sub">emission share</span></h3>${camsHtml}</div></div>${verdict}
   <div class="shaphint">SHAP concentration contribution (reference): ${c.shap.filter(s=>['traffic','urban_anthropogenic','industrial','port_shipping'].includes(s.cat)).slice(0,3).map(s=>`${CATLBL[s.cat]} ${(s.share*100).toFixed(0)}%`).join(' · ')}</div>
   <div class="rep"><div class="tabs">${(DATA.conds||[]).map(k=>`<button class="tab ${k===curCond?'on':''}" data-k="${k}">${k}</button>`).join('')}</div><div class="reptext" id="reptext"></div></div>`;
  renderReport();
@@ -400,4 +402,4 @@ if valid_conds:
         unsafe_allow_html=True)
 
 html = TPL.replace("__DATA__", json.dumps(DATA, ensure_ascii=False))
-components.html(html, height=1200, scrolling=False)
+components.html(html, height=1080, scrolling=False)
