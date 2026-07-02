@@ -1,0 +1,19 @@
+original_path,new_path,stage_or_area,status,notes
+experiments/paper_00_build_source_registry.py,pipeline/00_source_registry/build_source_registry.py,Stage 2 RAG/source registry,included,Generates source_registry.csv and air_quality_rag_database.jsonl
+experiments/paper_01_train_lgbm_aqsplit.py,pipeline/01_lgbm_baseline/train_lgbm_aqsplit.py,Stage 0 aligned LGBM,included,Trains LightGBM surrogate/backbone-aligned models; raw data required
+experiments/paper_02_diagnostic_eligibility.py,pipeline/02_diagnostic/diagnostic_eligibility.py,Stage 1 diagnostic gate,included,Computes oracle/deployable report eligibility
+experiments/paper_03_shap_reliability.py,pipeline/03_shap/shap_reliability.py,Stage 1 SHAP,included,Computes SHAP feature/group evidence and reliability
+experiments/260630_paper_unified_generate_reports_v3.py,pipeline/04_report_generation/generate_reports_v3.py,Stage 4 report generation,included,Latest unified generator; outputs ranked_sources for SHAP/RAG/Image conditions
+experiments/260701_eval_ranked_sources.py,pipeline/05_evaluation/eval_ranked_sources.py,Stage 4 evaluation,included,Evaluates ranked_sources vs CAMS gold
+experiments/eval_full_465_by_condition_260630.py,pipeline/05_evaluation/eval_full_465_by_condition.py,Stage 4 legacy evaluation,included,Legacy score-based evaluation over full_*.json reports
+experiments/paper_05_evaluate_reports_v4_axis_rubric.py,pipeline/05_evaluation/evaluate_reports_axis_rubric.py,Legacy report evaluation,included,Older G-Eval/report-quality evaluator
+experiments/paper_06_fetch_geospatial_context.py,pipeline/06_visual/fetch_geospatial_context.py,Legacy visual context,included,Fetches Google map/streetview images for cases
+experiments/paper_07_vlm_visual_inspection_v2.py,pipeline/06_visual/vlm_visual_inspection_v2.py,Legacy visual inspection,included,Uses VLM to inspect retrieved visual cases
+experiments/paper_08_generate_visual_grounded_reports_v2.py,pipeline/06_visual/generate_visual_grounded_reports_v2.py,Legacy visual report generation,included,Generates visual-grounded reports from visual inspection JSONL
+experiments/paper_10_visual_aware_geval.py,pipeline/06_visual/visual_aware_geval.py,Legacy visual G-Eval,included,Visual-aware judge/evaluation script
+experiments/paper_11_visual_conditional_geval.py,pipeline/06_visual/visual_conditional_geval.py,Legacy visual G-Eval,included,Visual-conditional G-Eval and structural metrics
+experiments/paper_14_evaluate_visual_label_metrics.py,pipeline/06_visual/evaluate_visual_label_metrics.py,Legacy visual label metrics,included,Evaluates visual label metrics against human gold labels
+experiments/260701_dashboard.py,dashboard/dashboard.py,Dashboard,included,Streamlit dashboard for comparing report conditions
+experiments/paper_12_generate_multimodel_reports.py,legacy_multimodel/paper_12_generate_multimodel_reports.py,Optional multimodel extension,included,Incomplete without model matrix config and missing paper_08 helper
+experiments/paper_13_evaluate_unified_geval.py,legacy_multimodel/paper_13_evaluate_unified_geval.py,Optional multimodel extension,included,Unified G-Eval for multimodel reports
+experiments/paper_11_visual_conditional_geval.py,legacy_multimodel/paper_11_visual_conditional_geval.py,Support file for paper_13,included,Copied here because paper_13 imports it by bare module name

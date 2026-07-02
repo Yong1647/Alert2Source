@@ -1,0 +1,93 @@
+anomaly:
+  ae_epochs: 50
+  ae_lr: 0.001
+  top_percent: 5
+categorical_features:
+- rural
+- urban
+- traffic
+dashboard:
+  google_maps_api_key: ''
+  map_center:
+  - 48.5
+  - 10.0
+  map_zoom: 5
+  yolo_model_path: models/yolo_best.pt
+description: 유럽 AQNet 원논문 데이터 재현
+lgbm:
+  early_stopping: 100
+  n_bags: 7
+  n_estimators: 1000
+  param_grid:
+    colsample_bytree:
+    - 0.85
+    - 0.95
+    learning_rate:
+    - 0.035
+    max_depth:
+    - 10
+    - 12
+    min_data_in_leaf:
+    - 15
+    num_leaves:
+    - 15
+    - 18
+    reg_alpha:
+    - 1.7
+    - 2
+    reg_lambda:
+    - 1
+    - 1.5
+    subsample:
+    - 0.8
+    - 0.9
+model:
+  backbone: mobilenet_v3_small
+  checkpoint: true
+  s5p_switch: true
+  tabular_input_count: 23
+  tabular_switch: true
+name: europe_23feat
+paths:
+  datadir: /media/usr/DATA/yongjin/
+  lgbm_dir: results/lgbm/europe_23feat
+  result_dir: results
+  samples_file: /home/yongjin/SSD/yongjin/SCSC/AQNet/Modules/ThreeOutput/data/multimodal/final_master_data_FINAL.csv
+pollutants:
+- no2
+- o3
+- pm10
+tabular_features:
+- Altitude
+- Latitude
+- Longitude
+- PopulationDensity
+- Temp_3yr
+- Wind_3yr
+- Precip_3yr
+- RH_3yr
+- Stability_3yr
+- num_roads_500m
+- num_buildings_500m
+- num_factory_500m
+- num_industrial_landuse_500m
+- num_roads_1km
+- num_buildings_1km
+- num_factory_1km
+- num_industrial_landuse_1km
+- rural
+- traffic
+- urban
+- ship_density_1km
+- ship_density_5km
+- ship_density_10km
+training:
+  batch_size: 16
+  epochs: 30
+  lr: 0.001
+  runs: 5
+  seed_base: 2023
+  split_ratio:
+    test: 0.25
+    val: 0.25
+  weight_decay: 0.005

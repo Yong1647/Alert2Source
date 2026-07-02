@@ -1,0 +1,30 @@
+# Core data / ML
+numpy
+pandas
+pyyaml
+scikit-learn
+joblib
+lightgbm
+shap
+
+# Deep learning / multimodal backbone
+torch
+torchvision
+matplotlib
+tqdm
+rasterio
+rioxarray
+xarray
+
+# LLM / VLM providers
+openai
+google-genai
+ollama
+requests
+
+# Dashboard
+streamlit
+
+# Optional RAG/indexing extensions, if you add FAISS/SentenceTransformer retrieval
+faiss-cpu
+sentence-transformers

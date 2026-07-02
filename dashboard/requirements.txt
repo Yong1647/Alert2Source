@@ -1,0 +1,6 @@
+# Minimal deps for the Streamlit Community Cloud demo (dashboard only).
+# Placed next to the entrypoint so Community Cloud uses THIS instead of the
+# heavy root requirements.txt (torch/shap/lightgbm are not needed to view the dashboard).
+streamlit
+pandas
+numpy

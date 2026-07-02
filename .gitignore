@@ -1,0 +1,11 @@
+# 원본 위성 데이터 (대용량·라이선스)
+data/raw/
+# 위성 크롭 이미지 (재배포 지양)
+outputs/visual/images/
+# 원본 full 리포트(슬림본만 올림) — 필요시 주석 해제
+# outputs/reports/full_*.json
+# LGBM 대용량 모델 (원하면 Zenodo로) — 필요시 주석 해제
+# outputs/models/
+__pycache__/
+*.pyc
+.env
