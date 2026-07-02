@@ -310,7 +310,7 @@ const f=DATA.cases.findIndex(c=>c.pollutant==='no2'&&c.cams);if(f>=0)selectCase(
 
 # ----------------------------------- UI -----------------------------------
 st.markdown("""<style>
-.block-container{padding-top:2.4rem;padding-bottom:1.2rem;max-width:1520px}
+.block-container{padding-top:3.6rem;padding-bottom:1rem;padding-left:2.2rem;padding-right:2.2rem;max-width:100%}
 .a2s-hero{padding:2px 2px 14px;border-bottom:1px solid #2A323F;margin-bottom:16px}
 .a2s-hero .ttl{font-size:27px;font-weight:800;letter-spacing:-.01em;color:#E7ECF3;display:flex;align-items:center;gap:12px;line-height:1.1;flex-wrap:wrap}
 .a2s-hero .tag{font-family:ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0E1117;background:#3DD6C4;padding:4px 9px;border-radius:6px}
@@ -319,7 +319,8 @@ st.markdown("""<style>
 .a2s-kpi{flex:1;min-width:150px;background:#171C25;border:1px solid #2A323F;border-radius:13px;padding:13px 16px}
 .a2s-kpi .k{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#B4BECE}
 .a2s-kpi .v{font-size:29px;font-weight:700;color:#E7ECF3;margin-top:5px;font-variant-numeric:tabular-nums;line-height:1}
-.a2s-kpi .d{font-family:ui-monospace,Menlo,monospace;font-size:11px;margin-top:6px}
+.a2s-kpi .dwrap{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.a2s-kpi .d{font-family:ui-monospace,Menlo,monospace;font-size:11px}
 .a2s-kpi .up{color:#3DD6C4}.a2s-kpi .down{color:#E8765A}.a2s-kpi .flat{color:#8A95A8}
 .a2s-kpi-cap{color:#8A95A8;font-size:11px;margin:2px 0 14px;line-height:1.5}
 </style>
@@ -356,35 +357,47 @@ if not DATA["cases"]:
 
 mbc = DATA["metrics_by_cond"]
 conds = DATA["conds"]
-_any = next((mbc[c] for c in conds if mbc.get(c, {}).get("n")), None)
-if _any:
-    # Headline KPI cards for the richest condition, with delta vs the SHAP baseline
-    # (the paper story: metrics improve as evidence is added SHAP -> +RAG -> +Image).
-    rich = next((c for c in reversed(conds) if mbc.get(c, {}).get("n")), None)
-    base = next((c for c in conds if mbc.get(c, {}).get("n")), None)
-    rm, bm = mbc.get(rich, {}), mbc.get(base, {})
+valid_conds = [c for c in conds if mbc.get(c, {}).get("n")]
+if valid_conds:
+    # Interactive headline: pick a condition, KPI cards show its values and the
+    # delta against every OTHER condition (e.g. +RAG shows gain vs SHAP and loss
+    # vs +RAG+Image). Defaults to the richest condition.
+    SHORT = {"SHAP+RAG+Image": "+Image", "SHAP+RAG": "+RAG", "SHAP": "SHAP"}
+    try:
+        sel = st.segmented_control("Headline condition", valid_conds,
+                                   default=valid_conds[-1], key="kpi_cond",
+                                   label_visibility="collapsed")
+    except Exception:
+        sel = st.radio("Headline condition", valid_conds, index=len(valid_conds) - 1,
+                       horizontal=True, key="kpi_cond", label_visibility="collapsed")
+    if sel not in valid_conds:
+        sel = valid_conds[-1]
+    sm = mbc.get(sel, {})
+    others = [c for c in valid_conds if c != sel]
     kdefs = [("AC@1", "ac1"), ("AC@3", "ac3"), ("MRR", "mrr"), ("recall@3", "rec3")]
     cards = []
     for label, key in kdefs:
-        v = rm.get(key)
+        v = sm.get(key)
         if v is None:
             continue
-        if rich != base and bm.get(key) is not None:
-            diff = v - bm[key]
+        deltas = []
+        for oc in others:
+            ov = mbc.get(oc, {}).get(key)
+            if ov is None:
+                continue
+            diff = v - ov
             cls, arrow = ("up", "▲") if diff > 5e-4 else (("down", "▼") if diff < -5e-4 else ("flat", "—"))
-            d = f'<div class="d {cls}">{arrow} {diff:+.3f} vs SHAP</div>'
-        else:
-            d = '<div class="d flat">baseline</div>'
+            deltas.append(f'<span class="d {cls}">{arrow} {diff:+.3f} vs {SHORT.get(oc, oc)}</span>')
+        dwrap = ("".join(deltas) if deltas else '<span class="d flat">only condition</span>')
         cards.append(f'<div class="a2s-kpi"><div class="k">{label}</div>'
-                     f'<div class="v">{v:.2f}</div>{d}</div>')
+                     f'<div class="v">{v:.2f}</div><div class="dwrap">{dwrap}</div></div>')
     st.markdown('<div class="a2s-kpis">' + "".join(cards) + "</div>", unsafe_allow_html=True)
     st.markdown(
-        f'<div class="a2s-kpi-cap">Headline condition '
-        f'<b style="color:#E7ECF3">{rich}</b> · n={rm.get("n")} cases · '
-        f'AC@1·AC@3·MRR on the CAMS dominant emitter, recall@3 on the present-set · '
-        f'NO₂·PM10 only (O₃ excluded) · Δ shown vs the SHAP baseline. '
-        f'Switch conditions in the detail panel below.</div>',
+        f'<div class="a2s-kpi-cap">Showing <b style="color:#E7ECF3">{sel}</b> · '
+        f'n={sm.get("n")} cases · AC@1·AC@3·MRR on the CAMS dominant emitter, '
+        f'recall@3 on the present-set · NO₂·PM10 only (O₃ excluded) · '
+        f'Δ shown against each other condition.</div>',
         unsafe_allow_html=True)
 
 html = TPL.replace("__DATA__", json.dumps(DATA, ensure_ascii=False))
-components.html(html, height=720, scrolling=False)
+components.html(html, height=1040, scrolling=False)
