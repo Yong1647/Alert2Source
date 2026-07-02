@@ -5,7 +5,8 @@ import pandas as pd, numpy as np
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Alert2Source Console", layout="wide")
+st.set_page_config(page_title="Alert2Source Console", layout="wide",
+                   initial_sidebar_state="collapsed")
 
 # ============================ CONFIG  ============================
 BASE = os.getenv("ALERT2SOURCE_OUTPUT_DIR", "outputs")
@@ -308,20 +309,40 @@ const f=DATA.cases.findIndex(c=>c.pollutant==='no2'&&c.cams);if(f>=0)selectCase(
 
 
 # ----------------------------------- UI -----------------------------------
-st.markdown("#### Alert2Source · Source-Attribution Console")
+st.markdown("""<style>
+.block-container{padding-top:2.4rem;padding-bottom:1.2rem;max-width:1520px}
+.a2s-hero{padding:2px 2px 14px;border-bottom:1px solid #2A323F;margin-bottom:16px}
+.a2s-hero .ttl{font-size:27px;font-weight:800;letter-spacing:-.01em;color:#E7ECF3;display:flex;align-items:center;gap:12px;line-height:1.1;flex-wrap:wrap}
+.a2s-hero .tag{font-family:ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0E1117;background:#3DD6C4;padding:4px 9px;border-radius:6px}
+.a2s-hero .sub{color:#B4BECE;font-size:13.5px;margin-top:8px;max-width:840px;line-height:1.5}
+.a2s-kpis{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 8px}
+.a2s-kpi{flex:1;min-width:150px;background:#171C25;border:1px solid #2A323F;border-radius:13px;padding:13px 16px}
+.a2s-kpi .k{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#B4BECE}
+.a2s-kpi .v{font-size:29px;font-weight:700;color:#E7ECF3;margin-top:5px;font-variant-numeric:tabular-nums;line-height:1}
+.a2s-kpi .d{font-family:ui-monospace,Menlo,monospace;font-size:11px;margin-top:6px}
+.a2s-kpi .up{color:#3DD6C4}.a2s-kpi .down{color:#E8765A}.a2s-kpi .flat{color:#8A95A8}
+.a2s-kpi-cap{color:#8A95A8;font-size:11px;margin:2px 0 14px;line-height:1.5}
+</style>
+<div class="a2s-hero">
+  <div class="ttl">Alert2Source <span class="tag">Source Attribution Console</span></div>
+  <div class="sub">Explaining air-quality alerts with SHAP evidence, source-knowledge RAG, and satellite
+  visual context — with ranked source attribution scored against CAMS-REG.</div>
+</div>""", unsafe_allow_html=True)
 
 with st.sidebar:
-    st.markdown("**File paths (editable)**")
-    rfiles = {}
-    for cond, dp in DEFAULT_REPORTS.items():
-        rfiles[cond] = st.text_input(cond, value=dp)
-    gold_csv   = st.text_input("CAMS gold", value=DEFAULT_GOLD)
-    master_csv = st.text_input("master",   value=DEFAULT_MASTER)
-    if st.button("🔄 Reload data"):
+    st.markdown("### ⚙️ Settings")
+    if st.button("🔄 Reload data", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
-    st.caption("After regenerating reports, change the paths or press Reload to apply. "
-               "Buttons on the map = root filter (shows only stations identified with that root).")
+    with st.expander("Data sources (file paths)", expanded=False):
+        rfiles = {}
+        for cond, dp in DEFAULT_REPORTS.items():
+            rfiles[cond] = st.text_input(cond, value=dp)
+        gold_csv   = st.text_input("CAMS gold", value=DEFAULT_GOLD)
+        master_csv = st.text_input("master",   value=DEFAULT_MASTER)
+    st.caption("Map buttons = root filter (show only stations identified with that root). "
+               "Switch the SHAP / +RAG / +Image tabs in the detail panel to compare conditions. "
+               "Edit the paths above and press Reload after regenerating reports.")
 
 try:
     DATA = assemble(rfiles, gold_csv, master_csv)
@@ -337,23 +358,33 @@ mbc = DATA["metrics_by_cond"]
 conds = DATA["conds"]
 _any = next((mbc[c] for c in conds if mbc.get(c, {}).get("n")), None)
 if _any:
-    st.markdown("**Performance comparison by condition** — LLM ranked_sources vs CAMS-REG (NO2·PM10, O3 excluded)")
-    tbl = []
-    for c in conds:
-        mm = mbc.get(c, {})
-        if not mm.get("n"):
+    # Headline KPI cards for the richest condition, with delta vs the SHAP baseline
+    # (the paper story: metrics improve as evidence is added SHAP -> +RAG -> +Image).
+    rich = next((c for c in reversed(conds) if mbc.get(c, {}).get("n")), None)
+    base = next((c for c in conds if mbc.get(c, {}).get("n")), None)
+    rm, bm = mbc.get(rich, {}), mbc.get(base, {})
+    kdefs = [("AC@1", "ac1"), ("AC@3", "ac3"), ("MRR", "mrr"), ("recall@3", "rec3")]
+    cards = []
+    for label, key in kdefs:
+        v = rm.get(key)
+        if v is None:
             continue
-        tbl.append({"Condition": c, "n": mm["n"], "AC@1": mm["ac1"], "AC@3": mm["ac3"],
-                    "MRR": mm["mrr"], "recall@3": mm["rec3"]})
-    tdf = pd.DataFrame(tbl).set_index("Condition")
-    st.dataframe(tdf, use_container_width=True)
-    # headline metrics for the richest condition
-    rich = conds[-1] if conds else None
-    if rich and mbc.get(rich, {}).get("n"):
-        st.caption(f"Table above: compares how metrics change as evidence is added (SHAP→+RAG→+Image). "
-                   f"AC@1·AC@3·MRR are based on the CAMS dominant emitter, recall@3 on the present-set (NO2·PM10, O3 excluded). "
-                   f"You can switch conditions for the map and detail views below (default {rich}). "
-                   f"See the formulas at the bottom of the map.")
+        if rich != base and bm.get(key) is not None:
+            diff = v - bm[key]
+            cls, arrow = ("up", "▲") if diff > 5e-4 else (("down", "▼") if diff < -5e-4 else ("flat", "—"))
+            d = f'<div class="d {cls}">{arrow} {diff:+.3f} vs SHAP</div>'
+        else:
+            d = '<div class="d flat">baseline</div>'
+        cards.append(f'<div class="a2s-kpi"><div class="k">{label}</div>'
+                     f'<div class="v">{v:.2f}</div>{d}</div>')
+    st.markdown('<div class="a2s-kpis">' + "".join(cards) + "</div>", unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="a2s-kpi-cap">Headline condition '
+        f'<b style="color:#E7ECF3">{rich}</b> · n={rm.get("n")} cases · '
+        f'AC@1·AC@3·MRR on the CAMS dominant emitter, recall@3 on the present-set · '
+        f'NO₂·PM10 only (O₃ excluded) · Δ shown vs the SHAP baseline. '
+        f'Switch conditions in the detail panel below.</div>',
+        unsafe_allow_html=True)
 
 html = TPL.replace("__DATA__", json.dumps(DATA, ensure_ascii=False))
 components.html(html, height=720, scrolling=False)
