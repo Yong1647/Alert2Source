@@ -327,7 +327,7 @@ st.markdown("""<style>
 .a2s-kpi-cap{color:#8A95A8;font-size:11px;margin:2px 0 14px;line-height:1.5}
 </style>
 <div class="a2s-hero">
-  <div class="ttl">Alert2Source <span class="tag">Source Attribution Console</span></div>
+  <div class="ttl">Alert2Source</div>
   <div class="sub">Explaining air-quality alerts with SHAP evidence, source-knowledge RAG, and satellite
   visual context — with ranked source attribution scored against CAMS-REG.</div>
 </div>""", unsafe_allow_html=True)
