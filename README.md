@@ -1,4 +1,5 @@
 # Alert2Source
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://alert2source-gkrpy2ympcvodd5tznxkfe.streamlit.app/)
 
 Alert2Source is a staged pipeline for explaining air-quality alerts with SHAP evidence, source-knowledge RAG, optional visual context, and ranked source attribution.
 
