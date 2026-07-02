@@ -61,6 +61,14 @@ cp .env.example .env   # then fill in OPENAI_API_KEY (stages 04 and 06 need it)
 Stages 04 and 06 call the OpenAI API; set `OPENAI_API_KEY` in your environment
 or `.env`. Path overrides (`ALERT2SOURCE_*`) are documented in `.env.example`.
 
+## Backbone training
+
+`pipeline/training_fusion_multi.py` trains the multimodal **TabSatFusion**
+backbone (NO2/O3/PM10). It needs the raw Sentinel files under `--datadir`
+(`sentinel-2/*.npy`, `sentinel-5p/*.nc`) and the Stage 01 LGBM leaf-embedding
+models under `--lgbm_dir`. It writes per-run `test_detail_run{N}.csv` consumed
+by Stage 02. See `data/README.md` for the expected raw layout.
+
 ## Notes on excluded / external data
 
 - Raw satellite inputs (`data/raw/`) and generated z13 satellite crops
@@ -68,5 +76,17 @@ or `.env`. Path overrides (`ALERT2SOURCE_*`) are documented in `.env.example`.
 - The z13 satellite-crop builder that produces `outputs/visual/visual_cases.jsonl`
   and the crop PNGs is not part of this repository; the slim `visual_cases.jsonl`
   is included so the image condition can be inspected.
-- Full backbone (AQFusionNet) retraining requires the raw data directory and the
-  backbone training entrypoint, which are not included here.
+
+## Data, licensing & attribution
+
+Raw satellite data is distributed via an external archive, not Git:
+
+- **Archive DOI / download:** `<ZENODO_OR_HF_DOI — to be added>`
+
+If you use or redistribute the data, retain these attributions (details in
+`data/README.md`):
+
+- **Sentinel-2 / Sentinel-5P** — *"Contains modified Copernicus Sentinel data [year]"* (Copernicus free/open data policy).
+- **CAMS-REG** — *"Generated using Copernicus Atmosphere Monitoring Service information [year]."*
+- **Air-quality / station labels** — EEA benchmark, Rowley & Karakuş (2023), doi:10.1016/j.rse.2023.113609.
+- **Infrastructure features** — © OpenStreetMap contributors, ODbL 1.0 (attribution + share-alike).
